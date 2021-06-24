@@ -3,10 +3,9 @@ package com.isacmms.exchangetransactions.service;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +24,7 @@ import com.isacmms.exchangetransactions.model.ExchangeTransactionEntity.Currency
 import com.isacmms.exchangetransactions.repository.ExchangeTransactionRepository;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,20 +57,14 @@ public class ExchangeTransactionServiceImplTest {
 		final BigDecimal baseValue = new BigDecimal("2.1");
 		
 		final String rateCurrency = CurrencyEnum.USD.name();
-		final BigDecimal rateValue = new BigDecimal("3.2");
-		
-		final BigDecimal usedRate = new BigDecimal("2.32");
 		
 		final ExchangeTransactionEntity entity = new ExchangeTransactionEntity(
 				userId, 
 				baseCurrency, baseValue, 
-				rateCurrency, rateValue, 
-				usedRate);
+				rateCurrency);
 		
-		final List<ExchangeTransactionEntity> exchangeTransactions = Stream.of(entity).collect(Collectors.toList());
-		
-		when(this.repository.findAllByUserId(userId))
-			.thenReturn(Flux.fromIterable(exchangeTransactions));
+		when(this.repository.findAllByUserId(anyLong()))
+			.thenReturn(Flux.fromStream(Stream.of(entity)));
 		
 		final Flux<ExchangeTransactionEntity> fluxResult = this.service.findAllByUserId(userId);
 		
@@ -79,9 +73,42 @@ public class ExchangeTransactionServiceImplTest {
 					() -> assertEquals(userId, transactionResult.getUserId()),
 					() -> assertEquals(baseCurrency, transactionResult.getBaseCurrency()),
 					() -> assertEquals(baseValue, transactionResult.getBaseValue()),
-					() -> assertEquals(rateCurrency, transactionResult.getRateCurrency()),
-					() -> assertEquals(rateValue, transactionResult.getRateValue()),
-					() -> assertEquals(usedRate, transactionResult.getUsedRate())))
+					() -> assertEquals(rateCurrency, transactionResult.getRateCurrency())))
+			.expectComplete()
+			.log()
+			.verify();
+	}
+	
+	/**
+	 * This shouldn't assert rateValue nor usedRate, since any input from handler dto should be ignore.
+	 * usedRate should be fetched from external api and rateValue calculated after that.
+	 */
+	@Test
+	@DisplayName("Test create exchange transaction expected success behavior")
+	void testCreateExchangeTransaction_ExpectExchangeTransaction() {
+		final Long userId = 1L;
+		
+		final String baseCurrency = CurrencyEnum.BRL.name();
+		final BigDecimal baseValue = new BigDecimal("2.1");
+		
+		final String rateCurrency = CurrencyEnum.USD.name();
+		
+		final ExchangeTransactionEntity entity = new ExchangeTransactionEntity(
+				userId, 
+				baseCurrency, baseValue, 
+				rateCurrency);
+		
+		when(this.repository.save(any(ExchangeTransactionEntity.class)))
+			.thenReturn(Mono.just(entity));
+		
+		final Mono<ExchangeTransactionEntity> monoResult = this.service.create(entity);
+		
+		StepVerifier.create(monoResult)
+			.assertNext(transactionResult -> assertAll(
+					() -> assertEquals(userId, transactionResult.getUserId()),
+					() -> assertEquals(baseCurrency, transactionResult.getBaseCurrency()),
+					() -> assertEquals(baseValue, transactionResult.getBaseValue()),
+					() -> assertEquals(rateCurrency, transactionResult.getRateCurrency())))
 			.expectComplete()
 			.log()
 			.verify();

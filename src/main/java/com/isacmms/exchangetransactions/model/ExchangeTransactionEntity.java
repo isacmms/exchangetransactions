@@ -39,6 +39,7 @@ public class ExchangeTransactionEntity extends BaseEntity implements Serializabl
 	/**
 	 * Origin currency
 	 */
+	@NotNull
 	@Column(value = "base_currency")
 	private String baseCurrency;
 
@@ -52,6 +53,7 @@ public class ExchangeTransactionEntity extends BaseEntity implements Serializabl
 	/**
 	 * Transaction rate currency
 	 */
+	@NotNull()
 	@Column(value = "rate_currency")
 	private String rateCurrency;
 
@@ -68,6 +70,13 @@ public class ExchangeTransactionEntity extends BaseEntity implements Serializabl
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	@Column(value = "used_rate")
 	private BigDecimal usedRate;
+	
+	public ExchangeTransactionEntity(Long userId, String baseCurrency, BigDecimal baseValue, String rateCurrency) {
+		this.userId = userId;
+		this.baseCurrency = baseCurrency;
+		this.baseValue = baseValue;
+		this.rateCurrency = rateCurrency;
+	}
 
 	public enum CurrencyEnum {
 		BRL, 

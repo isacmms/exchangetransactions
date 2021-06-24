@@ -3,18 +3,20 @@ package com.isacmms.exchangetransactions.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.isacmms.exchangetransactions.model.ExchangeTransactionEntity;
 import com.isacmms.exchangetransactions.repository.ExchangeTransactionRepository;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ExchangeTransactionServiceImpl implements ExchangeTransactionService {
 	
-	private final ExchangeTransactionRepository repository;
-	
 	private static final Logger logger = LoggerFactory.getLogger(ExchangeTransactionServiceImpl.class);
+	
+	private final ExchangeTransactionRepository repository;
 	
 	public ExchangeTransactionServiceImpl(ExchangeTransactionRepository repository) {
 		this.repository = repository;
@@ -28,9 +30,24 @@ public class ExchangeTransactionServiceImpl implements ExchangeTransactionServic
 	 */
 	@Override
 	public Flux<ExchangeTransactionEntity> findAllByUserId(Long userId) {
-		logger.debug("> ExchangeTransactionServiceImplTest.findAllByUserId()");
+		logger.debug("> ExchangeTransactionServiceImpl.findAllByUserId()");
 		
 		return this.repository.findAllByUserId(userId);
+	}
+	
+	/**
+	 * Creation of new transaction
+	 * 
+	 * @param transaction exchange transaction to persist
+	 * @param userId id of the owner of the transaction
+	 * @return persisted entity
+	 */
+	@Override
+	@Transactional
+	public Mono<ExchangeTransactionEntity> create(ExchangeTransactionEntity dto) {
+		logger.debug("> ExchangeTransactionServiceImpl.create()");
+		
+		return this.repository.save(dto);
 	}
 
 }

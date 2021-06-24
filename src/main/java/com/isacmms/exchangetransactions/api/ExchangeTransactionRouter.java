@@ -1,6 +1,7 @@
 package com.isacmms.exchangetransactions.api;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
+import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,8 @@ public class ExchangeTransactionRouter {
 	@Bean
     RouterFunction<ServerResponse> exchangeRoutes(ExchangeTransactionHandler handler) {
 		
-        return route(GET("/api/v1/exchange-transactions/{userId}"), handler::findAll);
+        return route(GET("/api/v1/exchange-transactions/{userId}"), handler::findAll)
+        		.andRoute(POST("/api/v1/exchange-transactions"), handler::create);
     }
 
 }
