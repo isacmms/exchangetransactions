@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.isacmms.exchangetransactions.config.TestDBInitializerConfig;
 import com.isacmms.exchangetransactions.model.ExchangeTransactionEntity;
@@ -24,6 +25,7 @@ import reactor.test.StepVerifier;
 
 @DataR2dbcTest
 @Import({ TestDBInitializerConfig.class })
+@ActiveProfiles("test")
 class R2dbcTest {
 	
 	private static final Logger log = LoggerFactory.getLogger(R2dbcTest.class);

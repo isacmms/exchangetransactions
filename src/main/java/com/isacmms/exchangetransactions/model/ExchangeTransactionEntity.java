@@ -2,7 +2,6 @@ package com.isacmms.exchangetransactions.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.math.MathContext;
 
 import javax.validation.constraints.NotNull;
 
@@ -82,7 +81,7 @@ public class ExchangeTransactionEntity extends BaseEntity implements Serializabl
 	
 	public BigDecimal getRateValue() {
 		if (this.baseValue != null && this.usedRate != null)
-			return this.baseValue.multiply(this.usedRate, MathContext.DECIMAL128);
+			return this.baseValue.multiply(this.usedRate);
 		return null;
 	}
 

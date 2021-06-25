@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.isacmms.exchangetransactions.integration.service.ExchangeRatesApiService;
 import com.isacmms.exchangetransactions.model.ExchangeTransactionEntity;
 import com.isacmms.exchangetransactions.model.ExchangeTransactionEntity.CurrencyEnum;
 import com.isacmms.exchangetransactions.repository.ExchangeTransactionRepository;
@@ -34,6 +35,8 @@ class ExchangeTransactionServiceImplTest {
 
 	@Mock
 	private ExchangeTransactionRepository repository;
+	@Mock
+	private ExchangeRatesApiService externalService;
 	@InjectMocks
 	private ExchangeTransactionServiceImpl service;
 	
@@ -92,6 +95,7 @@ class ExchangeTransactionServiceImplTest {
 		final BigDecimal baseValue = new BigDecimal("2.1");
 		
 		final String rateCurrency = CurrencyEnum.USD.name();
+		final BigDecimal usedRate = new BigDecimal("2.2");
 		
 		final ExchangeTransactionEntity entity = new ExchangeTransactionEntity(
 				userId, 
@@ -100,6 +104,8 @@ class ExchangeTransactionServiceImplTest {
 		
 		when(this.repository.save(any(ExchangeTransactionEntity.class)))
 			.thenReturn(Mono.just(entity));
+		when(this.externalService.fetchCurrencyRate(anyString(), anyString()))
+			.thenReturn(Mono.just(usedRate));
 		
 		final Mono<ExchangeTransactionEntity> monoResult = this.service.create(entity);
 		
@@ -108,7 +114,8 @@ class ExchangeTransactionServiceImplTest {
 					() -> assertEquals(userId, transactionResult.getUserId()),
 					() -> assertEquals(baseCurrency, transactionResult.getBaseCurrency()),
 					() -> assertEquals(baseValue, transactionResult.getBaseValue()),
-					() -> assertEquals(rateCurrency, transactionResult.getRateCurrency())))
+					() -> assertEquals(rateCurrency, transactionResult.getRateCurrency()),
+					() -> assertEquals(usedRate, transactionResult.getUsedRate())))
 			.expectComplete()
 			.log()
 			.verify();

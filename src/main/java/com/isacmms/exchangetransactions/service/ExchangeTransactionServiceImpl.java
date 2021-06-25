@@ -1,10 +1,13 @@
 package com.isacmms.exchangetransactions.service;
 
+import java.math.BigDecimal;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.isacmms.exchangetransactions.integration.service.ExchangeRatesApiService;
 import com.isacmms.exchangetransactions.model.ExchangeTransactionEntity;
 import com.isacmms.exchangetransactions.repository.ExchangeTransactionRepository;
 
@@ -17,9 +20,13 @@ public class ExchangeTransactionServiceImpl implements ExchangeTransactionServic
 	private static final Logger logger = LoggerFactory.getLogger(ExchangeTransactionServiceImpl.class);
 	
 	private final ExchangeTransactionRepository repository;
+	private final ExchangeRatesApiService externalApiService;
 	
-	public ExchangeTransactionServiceImpl(ExchangeTransactionRepository repository) {
+	public ExchangeTransactionServiceImpl(
+			ExchangeTransactionRepository repository,
+			ExchangeRatesApiService externalApiService) {
 		this.repository = repository;
+		this.externalApiService = externalApiService;
 	}
 
 	/**
@@ -47,7 +54,31 @@ public class ExchangeTransactionServiceImpl implements ExchangeTransactionServic
 	public Mono<ExchangeTransactionEntity> create(ExchangeTransactionEntity dto) {
 		logger.debug("> ExchangeTransactionServiceImpl.create()");
 		
-		return this.repository.save(dto);
+		final String baseCurrency = dto.getBaseCurrency();
+		final String rateCurrency = dto.getRateCurrency();
+		
+		return Mono.zip(
+				Mono.just(dto),
+				this.findConversionRate(baseCurrency, rateCurrency),
+				(_dto, usedRate) -> {
+					_dto.setUsedRate(usedRate);
+					return _dto;
+				})
+				.flatMap(_dto -> this.repository.save(_dto));
+	}
+	
+	/**
+	 * Fetch currency rates from external service
+	 * 
+	 * @param baseCurrency
+	 * @param rateCurrency
+	 * @return conversion rate from the base currency to the rate currency
+	 */
+	@Override
+	public Mono<BigDecimal> findConversionRate(String baseCurrency, String rateCurrency) {
+		logger.debug("> ExchangeRateTransactionServiceImpl.findConversionRate()");
+		
+		return this.externalApiService.fetchCurrencyRate(baseCurrency, rateCurrency);
 	}
 
 }
