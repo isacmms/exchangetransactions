@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.isacmms.exchangetransactions.model.ExchangeTransactionEntity;
 import com.isacmms.exchangetransactions.model.ExchangeTransactionEntity.CurrencyEnum;
 
-public class ExchangeTransactionEntitySerializationTest {
+class ExchangeTransactionEntitySerializationTest {
 
 	private static final Logger log = LoggerFactory.getLogger(ExchangeTransactionEntitySerializationTest.class);
 	

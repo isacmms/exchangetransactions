@@ -28,7 +28,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
-public class ExchangeTransactionServiceImplTest {
+class ExchangeTransactionServiceImplTest {
 	
 	private static final Logger log = LoggerFactory.getLogger(ExchangeTransactionServiceImplTest.class);
 

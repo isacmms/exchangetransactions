@@ -2,6 +2,7 @@ package com.isacmms.exchangetransactions.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.MathContext;
 
 import javax.validation.constraints.NotNull;
 
@@ -10,6 +11,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.isacmms.exchangetransactions.validation.ValueOfEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -39,7 +41,7 @@ public class ExchangeTransactionEntity extends BaseEntity implements Serializabl
 	/**
 	 * Origin currency
 	 */
-	@NotNull
+	@ValueOfEnum(enumClass = CurrencyEnum.class, acceptNull = false)
 	@Column(value = "base_currency")
 	private String baseCurrency;
 
@@ -53,7 +55,7 @@ public class ExchangeTransactionEntity extends BaseEntity implements Serializabl
 	/**
 	 * Transaction rate currency
 	 */
-	@NotNull()
+	@ValueOfEnum(enumClass = CurrencyEnum.class, acceptNull = false)
 	@Column(value = "rate_currency")
 	private String rateCurrency;
 
@@ -77,6 +79,13 @@ public class ExchangeTransactionEntity extends BaseEntity implements Serializabl
 		this.baseValue = baseValue;
 		this.rateCurrency = rateCurrency;
 	}
+	
+	public BigDecimal getRateValue() {
+		if (this.baseValue != null && this.usedRate != null)
+			return this.baseValue.multiply(this.usedRate, MathContext.DECIMAL128);
+		return null;
+	}
+
 
 	public enum CurrencyEnum {
 		BRL, 

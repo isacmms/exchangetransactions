@@ -13,21 +13,19 @@ import io.r2dbc.spi.ConnectionFactory;
 
 @EnableR2dbcAuditing
 @Configuration
-@Profile("dev")
-public class DBInitializerConfig {
+@Profile("test")
+public class TestDBInitializerConfig {
 
 	@Bean
-	public ConnectionFactoryInitializer initializer(ConnectionFactory connectionFactory) {
+	public ConnectionFactoryInitializer testProfileInitializer(ConnectionFactory connectionFactory) {
 
 		ConnectionFactoryInitializer initializer = new ConnectionFactoryInitializer();
 		initializer.setConnectionFactory(connectionFactory);
 
 		CompositeDatabasePopulator populator = new CompositeDatabasePopulator();
-		populator.addPopulators(new ResourceDatabasePopulator(new ClassPathResource("schema.sql")));
+		populator.addPopulators(new ResourceDatabasePopulator(new ClassPathResource("schema.sql"), new ClassPathResource("test-data.sql")));
 		initializer.setDatabasePopulator(populator);
 
 		return initializer;
 	}
-
 }
-

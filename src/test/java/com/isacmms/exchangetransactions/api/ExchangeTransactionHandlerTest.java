@@ -32,8 +32,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @ExtendWith(SpringExtension.class)
-@Import(value = { ExchangeTransactionRouter.class, ExchangeTransactionHandler.class, ObjectMapper.class, LocalValidatorFactoryBean.class })
-public class ExchangeTransactionHandlerTest {
+@Import(value = { 
+		ExchangeTransactionRouter.class, 
+		ExchangeTransactionHandler.class, 
+		ObjectMapper.class, 
+		LocalValidatorFactoryBean.class 
+})
+class ExchangeTransactionHandlerTest {
 
 	private static final Logger log = LoggerFactory.getLogger(ExchangeTransactionHandlerTest.class);
 	
@@ -128,14 +133,23 @@ public class ExchangeTransactionHandlerTest {
 		
 		final String rateCurrency = CurrencyEnum.BRL.name();
 		
+		final String invalidBaseCurrency = "ASD";
+		final String invalidRateCurrency = "QWE";
 		
-		final ExchangeTransactionEntity entity1 = new ExchangeTransactionEntity(null, baseCurrency, baseValue, rateCurrency);
-		final ExchangeTransactionEntity entity2 = new ExchangeTransactionEntity(userId, null, baseValue, rateCurrency);
-		final ExchangeTransactionEntity entity3 = new ExchangeTransactionEntity(userId, baseCurrency, null, rateCurrency);
-		final ExchangeTransactionEntity entity4 = new ExchangeTransactionEntity(userId, baseCurrency, baseValue, null);
+		// Null values
+		final ExchangeTransactionEntity entity1 = new ExchangeTransactionEntity(null,	baseCurrency, 			baseValue, 	rateCurrency);
+		final ExchangeTransactionEntity entity2 = new ExchangeTransactionEntity(userId, null, 					baseValue, 	rateCurrency);
+		final ExchangeTransactionEntity entity3 = new ExchangeTransactionEntity(userId, baseCurrency, 			null, 		rateCurrency);
+		final ExchangeTransactionEntity entity4 = new ExchangeTransactionEntity(userId, baseCurrency, 			baseValue, 	null);
 		
-		Stream.of(entity1, entity2, entity3, entity4)
-			.forEach(entity -> {
+		// Invalid values
+		final ExchangeTransactionEntity entity5 = new ExchangeTransactionEntity(userId, invalidBaseCurrency, 	baseValue, 	rateCurrency);
+		final ExchangeTransactionEntity entity6 = new ExchangeTransactionEntity(userId, baseCurrency, 			baseValue, 	invalidRateCurrency);
+		
+		Stream.of(
+				entity1, entity2, entity3, 
+				entity4, entity5, entity6
+			).forEach(entity -> {
 				this.client.post()
 					.uri("/api/v1/exchange-transactions/")
 					.body(Mono.just(entity), ExchangeTransactionEntity.class)
